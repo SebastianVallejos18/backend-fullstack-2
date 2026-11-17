@@ -1,7 +1,7 @@
 # Sonido Vivo – Backend (Evaluación Parcial 3)
 
 API REST en **Node.js + Express** con base de datos **PostgreSQL** y autenticación con **JWT**.
-Frontend: _(enlace al repositorio del frontend)_.
+Frontend: [(Enlace repositorio front end)](https://github.com/SebastianVallejos18/Sonido-vivo-Fullstack-2-React)
 
 ## Cómo está organizado
 ```
@@ -56,4 +56,5 @@ El JWT lleva `id` y `rol` y dura 2 horas. Las rutas protegidas esperan el encabe
 | Pedido (regla de stock, 409) | Pendiente |
 
 ## Integrantes
-Sebastian Vallejos, Diego Alvear y Enzo Arriati.
+- `Sebastian Vallejos` (seb.vallejos@duocuc.cl)
+- `Enzo Arriati` (en.arriati@duocuc.cl)
