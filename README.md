@@ -21,23 +21,23 @@ Una petición recorre: **ruta → (middleware) → controlador → repositorio �
 ```bash
 npm install
 cp .env.example .env        # completar DB_PASSWORD y JWT_SECRET (el .env no se sube a GitHub)
-psql -U postgres -d sonidovivo -f sql/usuarios.sql
+psql -h localhost -U postgres -d sonidovivo -f sql/usuarios.sql
 node scripts/crear-admin.js "Nombre" correo@dominio.cl 'Clave1234'
 npm run dev
 ```
-Comprobar: `GET http://localhost:8080/api/health` debe responder `{"estado":"ok"}`.
+Comprobar: `GET http://localhost:8080/api/v1/health` debe responder `{"estado":"ok"}`.
 
 Variables de entorno: ver `.env.example`. Con Amazon RDS se usa `DB_SSL=true` y se ejecuta además `sql/permisos_rds.sql`.
 
 ## Endpoints de usuarios y autenticación
 | Método | Ruta | Acceso | Respuestas |
 |---|---|---|---|
-| POST | `/api/auth/registro` | Público (el servidor asigna el rol CLIENTE) | 201, 400, 409 |
-| POST | `/api/auth/login` | Público | 200 con JWT, 400, 401 (error genérico) |
-| GET | `/api/usuarios` | ADMIN | 200, 401, 403 |
-| GET | `/api/usuarios/:id` | ADMIN o el mismo usuario | 200, 401, 403, 404 |
-| PUT | `/api/usuarios/:id` | ADMIN | 200, 400, 401, 403, 404 |
-| DELETE | `/api/usuarios/:id` | ADMIN (desactiva la cuenta) | 200, 401, 403, 404 |
+| POST | `/api/v1/auth/registro` | Público (el servidor asigna el rol CLIENTE) | 201, 400, 409 |
+| POST | `/api/v1/auth/login` | Público | 200 con JWT, 400, 401 (error genérico) |
+| GET | `/api/v1/usuarios` | ADMIN | 200, 401, 403 |
+| GET | `/api/v1/usuarios/:id` | ADMIN o el mismo usuario | 200, 401, 403, 404 |
+| PUT | `/api/v1/usuarios/:id` | ADMIN | 200, 400, 401, 403, 404 |
+| DELETE | `/api/v1/usuarios/:id` | ADMIN (desactiva la cuenta) | 200, 401, 403, 404 |
 
 Roles del caso: `ADMIN`, `VENDEDOR`, `CLIENTE`. Las contraseñas se guardan con hash (bcrypt).
 El JWT lleva `id` y `rol` y dura 2 horas. Las rutas protegidas esperan el encabezado `Authorization: Bearer <token>`.
