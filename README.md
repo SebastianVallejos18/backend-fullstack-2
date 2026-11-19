@@ -14,6 +14,7 @@ src/repositories/          consultas SQL (únicas que tocan la base)
 src/middlewares/           verifica el JWT (401) y el rol (403)
 sql/                       scripts de la base de datos
 scripts/crear-admin.js     crea el primer administrador
+docs/openapi.yaml          documentación OpenAPI (Swagger)
 ```
 Una petición recorre: **ruta → (middleware) → controlador → repositorio → base de datos**.
 
@@ -29,6 +30,12 @@ Comprobar: `GET http://localhost:8080/api/v1/health` debe responder `{"estado":"
 
 Variables de entorno: ver `.env.example`. Con Amazon RDS se usa `DB_SSL=true` y se ejecuta además `sql/permisos_rds.sql`.
 
+## Documentación Swagger
+- En local: `http://localhost:8080/api-docs`
+- En la instancia EC2: `http://IP_PUBLICA_DE_LA_EC2:8080/api-docs` (la IP cambia cada vez que se reinicia el laboratorio).
+
+Para probar las rutas protegidas: ejecutar `POST /auth/login`, copiar el `token` y pulsarlo en **Authorize** (solo el token, sin la palabra Bearer).
+
 ## Endpoints de usuarios y autenticación
 | Método | Ruta | Acceso | Respuestas |
 |---|---|---|---|
@@ -41,19 +48,38 @@ Variables de entorno: ver `.env.example`. Con Amazon RDS se usa `DB_SSL=true` y 
 
 Roles del caso: `ADMIN`, `VENDEDOR`, `CLIENTE`. Las contraseñas se guardan con hash (bcrypt).
 El JWT lleva `id` y `rol` y dura 2 horas. Las rutas protegidas esperan el encabezado `Authorization: Bearer <token>`.
+Un usuario desactivado no puede iniciar sesión.
 
-## Estado del trabajo (avance mínimo, 16 de noviembre)
-| Operación | Estado |
+## Estado del trabajo (cierre semana 15, 22 de noviembre)
+| Operación | Diseñado | Implementado | Probado |
+|---|---|---|---|
+| Tabla de usuarios en PostgreSQL | Sí | Sí | Sí |
+| Registro de usuario (rol CLIENTE asignado por el servidor) | Sí | Sí | Sí |
+| Inicio de sesión con JWT (vigencia 2 h) | Sí | Sí | Sí |
+| Listar usuarios (solo ADMIN) | Sí | Sí | Sí |
+| Ver usuario (ADMIN cualquiera, los demás solo el propio) | Sí | Sí | Sí |
+| Modificar usuario (nombre y rol, solo ADMIN) | Sí | Sí | Sí |
+| Desactivar usuario (no se borra la fila, solo ADMIN) | Sí | Sí | Sí |
+| Roles y rutas protegidas (401 y 403) | Sí | Sí | Sí |
+| Swagger / OpenAPI | Sí | Sí | Sí |
+| Catálogo (instrumentos, equipos y accesorios) | Sí | No | No |
+| Pedido (regla de stock, 409) | Sí | No | No |
+
+El catálogo y el pedido quedan para la semana 16.
+
+## Pruebas realizadas
+| Prueba | Resultado |
 |---|---|
-| Tabla de usuarios en PostgreSQL | Listo |
-| Inicio de sesión con JWT | Listo |
-| Registro de usuario | Listo |
-| Modificar usuario | En avance |
-| Listar usuarios | En avance |
-| Eliminar o desactivar usuario | En avance |
-| Swagger / OpenAPI | Pendiente |
-| Catálogo (instrumentos, equipos y accesorios) | Pendiente |
-| Pedido (regla de stock, 409) | Pendiente |
+| Listar usuarios como ADMIN | 200 |
+| Listar sin token o con token falso | 401 |
+| Cliente intenta listar usuarios | 403 |
+| Cliente consulta a otro usuario | 403 |
+| Cliente consulta su propia cuenta | 200 |
+| Modificar nombre como ADMIN | 200 |
+| Modificar con un rol inválido | 400 |
+| Desactivar usuario | 200 (`activo: false`) |
+| Login de un usuario desactivado | 401 |
+| Registro con email repetido | 409 |
 
 ## Integrantes
 - `Sebastian Vallejos` (seb.vallejos@duocuc.cl)
