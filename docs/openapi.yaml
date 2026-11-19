@@ -1,0 +1,165 @@
+openapi: 3.0.3
+info:
+  title: API Sonido Vivo
+  version: 1.0.0
+  description: Usuarios, autenticación con JWT y roles (ADMIN, VENDEDOR, CLIENTE).
+servers:
+  - url: /api/v1
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Usuario:
+      type: object
+      properties:
+        id: { type: integer, example: 3 }
+        nombre: { type: string, example: Cliente Prueba }
+        email: { type: string, example: cliente@prueba.cl }
+        rol: { type: string, enum: [ADMIN, VENDEDOR, CLIENTE] }
+        activo: { type: boolean }
+        creado_en: { type: string, format: date-time }
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+  responses:
+    NoAutorizado:
+      description: Sin token, alterado o vencido
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Prohibido:
+      description: Rol insuficiente o cuenta ajena
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+paths:
+  /health:
+    get:
+      tags: [Sistema]
+      summary: Estado del servicio
+      responses:
+        '200': { description: 'Servicio activo, devuelve {"estado":"ok"}' }
+  /auth/registro:
+    post:
+      tags: [Autenticación]
+      summary: Registrar un usuario (el rol siempre es CLIENTE)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, email, password]
+              properties:
+                nombre: { type: string, example: Cliente Prueba }
+                email: { type: string, example: cliente@prueba.cl }
+                password: { type: string, minLength: 8, example: Cliente123 }
+      responses:
+        '201':
+          description: Usuario creado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Usuario' }
+        '400': { description: Datos inválidos }
+        '409': { description: El email ya está registrado }
+  /auth/login:
+    post:
+      tags: [Autenticación]
+      summary: Iniciar sesión y obtener un JWT (vigencia 2 h)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, example: admin@sonidovivo.cl }
+                password: { type: string, example: Admin12345 }
+      responses:
+        '200':
+          description: Token y datos del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  usuario: { $ref: '#/components/schemas/Usuario' }
+        '400': { description: Faltan email o password }
+        '401': { description: Credenciales inválidas o cuenta desactivada }
+  /usuarios:
+    get:
+      tags: [Usuarios]
+      summary: Listar usuarios (solo ADMIN)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Usuario' }
+        '401': { $ref: '#/components/responses/NoAutorizado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+  /usuarios/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [Usuarios]
+      summary: Ver un usuario (ADMIN cualquiera; los demás solo el propio)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Usuario
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Usuario' }
+        '400': { description: id inválido }
+        '401': { $ref: '#/components/responses/NoAutorizado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '404': { description: Usuario no encontrado }
+    put:
+      tags: [Usuarios]
+      summary: Modificar nombre o rol (solo ADMIN)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre: { type: string, example: Cliente Editado }
+                rol: { type: string, enum: [ADMIN, VENDEDOR, CLIENTE] }
+      responses:
+        '200':
+          description: Usuario actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Usuario' }
+        '400': { description: Datos inválidos }
+        '401': { $ref: '#/components/responses/NoAutorizado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '404': { description: Usuario no encontrado }
+    delete:
+      tags: [Usuarios]
+      summary: Desactivar usuario (no se borra la fila; solo ADMIN)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Usuario con activo=false
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Usuario' }
+        '401': { $ref: '#/components/responses/NoAutorizado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '404': { description: Usuario no encontrado }
