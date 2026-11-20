@@ -11,7 +11,8 @@ const usuarioRoutes = require('./routes/usuario.routes');
 const openapi = YAML.parse(fs.readFileSync(path.join(__dirname, '..', 'docs', 'openapi.yaml'), 'utf8'));
 
 const app = express();
-app.use(cors());           // permite que el frontend (otro puerto) consuma la API
+const origenes = (process.env.CORS_ORIGINS || 'http://localhost:5173').split(',').map((o) => o.trim());
+app.use(cors({ origin: origenes }));
 app.use(express.json());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapi));
 
