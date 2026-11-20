@@ -21,6 +21,13 @@ components:
         rol: { type: string, enum: [ADMIN, VENDEDOR, CLIENTE] }
         activo: { type: boolean }
         creado_en: { type: string, format: date-time }
+    UsuarioSesion:
+      type: object
+      properties:
+        id: { type: integer, example: 5 }
+        nombre: { type: string, example: Pepe }
+        email: { type: string, example: pepe@gmail.com }
+        rol: { type: string, enum: [ADMIN, VENDEDOR, CLIENTE] }
     Error:
       type: object
       properties:
@@ -78,8 +85,8 @@ paths:
               type: object
               required: [email, password]
               properties:
-                email: { type: string, example: admin@sonidovivo.cl }
-                password: { type: string, example: Admin12345 }
+                email: { type: string, example: usuario@correo.cl }
+                password: { type: string, example: MiClave1234 }
       responses:
         '200':
           description: Token y datos del usuario
@@ -89,7 +96,7 @@ paths:
                 type: object
                 properties:
                   token: { type: string }
-                  usuario: { $ref: '#/components/schemas/Usuario' }
+                  usuario: { $ref: '#/components/schemas/UsuarioSesion' }
         '400': { description: Faltan email o password }
         '401': { description: Credenciales inválidas o cuenta desactivada }
   /usuarios:
